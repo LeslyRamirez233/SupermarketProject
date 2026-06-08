@@ -10,18 +10,21 @@ package com.aprendeconmigo.PruebaTecSupermercado.model;
  import java.util.List;
 
 @Getter @Setter
- @AllArgsConstructor
- @NoArgsConstructor
+@AllArgsConstructor
+@NoArgsConstructor
+@Entity
 public class Venta {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private LocalDate fecha;
     private String estado;
+    private Double total;
     @ManyToOne
     private Sucursal sucursal;
 
-    @OneToMany (mappedBy = "venta" )
+    @OneToMany (mappedBy = "venta", cascade = CascadeType.ALL,
+                orphanRemoval = true, fetch = FetchType.EAGER)
     private List<DetalleVenta> detalle = new ArrayList<>();
 
 

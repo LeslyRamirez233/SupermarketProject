@@ -1,9 +1,12 @@
 package com.aprendeconmigo.PruebaTecSupermercado.service;
 
 import com.aprendeconmigo.PruebaTecSupermercado.dto.ProductoDTO;
+import com.aprendeconmigo.PruebaTecSupermercado.exception.NotFoundException;
 import com.aprendeconmigo.PruebaTecSupermercado.mapper.Mapper;
+import com.aprendeconmigo.PruebaTecSupermercado.model.Producto;
 import com.aprendeconmigo.PruebaTecSupermercado.repository.ProductoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,6 +16,7 @@ public class ProductoService implements IProductoService{
 
     @Autowired
     private ProductoRepository repo;
+
     @Override
     public List<ProductoDTO> traerProductos() {
         return repo.findAll().stream().map(Mapper::toDTO).toList();
@@ -20,16 +24,37 @@ public class ProductoService implements IProductoService{
 
     @Override
     public ProductoDTO crearProducto(ProductoDTO productoDto) {
-        return null;
+      Producto prod = Producto.builder()
+              .nombre(productoDto.getNombre())
+              .categoria(productoDto.getCategoria())
+              .precio(productoDto.getPrecio())
+              .cantidad(productoDto.getCantidad())
+              .build();
+              return Mapper.toDTO(repo.save(prod));
     }
 
     @Override
     public ProductoDTO actualizarProducto(Long id, ProductoDTO productoDto) {
-        return null;
+
+        // vamos a buscar si existe ese producto
+        Producto prod = repo.findById(id)
+                .orElseThrow(()-> new NotFoundException("Producto no encontrado"));
+
+        prod.setNombre(productoDto.getNombre());
+        prod.setCategoria(productoDto.getCategoria());
+        prod.setCantidad(productoDto.getCantidad());
+        prod.setPrecio(productoDto.getPrecio());
+
+        return Mapper.toDTO(repo.save(prod));
+
     }
 
     @Override
     public void eliminarProducto(Long id) {
+        if (!repo.existsById(id)) {
+            throw new NotFoundException("Producto no encontrado para eliminar");
+        }
 
+        repo.deleteById(id);
     }
 }
